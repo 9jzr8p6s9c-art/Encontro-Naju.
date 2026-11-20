@@ -1,0 +1,508 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title></title>
+
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Georgia, serif;
+  overflow: hidden;
+  background: #fffdfb;
+}
+
+#intro {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background:
+    radial-gradient(ellipse at 50% 40%, #ffffff 0%, #f8f1ed 65%, #efe5df 100%);
+  transition: opacity 1s ease, visibility 1s ease;
+}
+
+#intro.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.envelope {
+  width: 245px;
+  height: 165px;
+  position: relative;
+  perspective: 900px;
+  filter: drop-shadow(0 16px 20px #8d716333);
+}
+
+.envelope-back {
+  position: absolute;
+  inset: 0;
+  background: #e9d5c5;
+  border-radius: 5px;
+}
+
+.envelope-front {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(145deg, #f4e5d9, #dfc5b3);
+  clip-path: polygon(0 0, 50% 57%, 100% 0, 100% 100%, 0 100%);
+  z-index: 3;
+  border-radius: 4px;
+}
+
+.envelope-flap {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(150deg, #f8e9de, #d9bba6);
+  clip-path: polygon(0 0, 100% 0, 50% 62%);
+  transform-origin: top;
+  transition: transform 1s ease;
+  z-index: 4;
+}
+
+.envelope.open .envelope-flap {
+  transform: rotateX(180deg);
+  z-index: 1;
+}
+
+.envelope-paper {
+  position: absolute;
+  width: 82%;
+  height: 82%;
+  left: 9%;
+  top: 5%;
+  background: #fffdf9;
+  border: 1px solid #eadfd5;
+  transition: transform 1s ease;
+  z-index: 2;
+}
+
+.envelope.open .envelope-paper {
+  transform: translateY(-95px);
+}
+
+.seal {
+  position: absolute;
+  z-index: 5;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #c77c78, #8d3439 75%);
+  left: calc(50% - 17px);
+  top: 56%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f8e5d7;
+  font-size: 17px;
+  box-shadow: 0 2px 7px #69302d44;
+  transition: opacity .5s ease;
+}
+
+.envelope.open .seal {
+  opacity: 0;
+}
+
+.open-button {
+  margin-top: 48px;
+  border: 1px solid #c9aa98;
+  color: #745b4e;
+  background: #ffffffb8;
+  padding: 12px 34px;
+  border-radius: 30px;
+  font-family: Georgia, serif;
+  font-size: 17px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: .3s;
+}
+
+.open-button:active {
+  transform: scale(.96);
+}
+
+#garden {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at center, #fff 0%, #fffaf8 65%, #f7eeea 100%);
+  opacity: 0;
+  transition: opacity .7s ease;
+}
+
+#garden.active {
+  opacity: 1;
+}
+
+.flower {
+  position: absolute;
+  transform: translate(-50%, -50%) scale(.05) rotate(var(--rotation));
+  opacity: 0;
+  animation: bloom var(--duration) cubic-bezier(.18,.75,.25,1) forwards;
+  animation-delay: var(--delay);
+  filter: drop-shadow(0 5px 5px #6e44351c);
+}
+
+@keyframes bloom {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(.05) rotate(var(--rotation));
+  }
+  65% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.12) rotate(var(--rotation));
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(var(--rotation));
+  }
+}
+
+.petal-fall {
+  position: absolute;
+  top: -30px;
+  width: 13px;
+  height: 20px;
+  border-radius: 90% 10% 90% 10%;
+  opacity: 0;
+  animation: falling var(--fall-time) linear forwards;
+  animation-delay: var(--fall-delay);
+  background: var(--petal-color);
+}
+
+@keyframes falling {
+  0% {
+    opacity: 0;
+    transform: translate3d(0,-20px,0) rotate(0deg);
+  }
+  10% { opacity: .8; }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--drift),110vh,0) rotate(650deg);
+  }
+}
+
+#message {
+  position: fixed;
+  z-index: 5;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -45%);
+  width: min(88%, 540px);
+  padding: 35px 28px;
+  background: rgba(255,253,250,.87);
+  backdrop-filter: blur(8px);
+  border: 1px solid #eadbd2;
+  box-shadow: 0 15px 55px #76584b18;
+  border-radius: 5px;
+  color: #59463e;
+  text-align: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 1.2s ease, transform 1.2s ease;
+  line-height: 1.8;
+  font-size: 17px;
+}
+
+#message.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -50%);
+}
+
+#message p {
+  margin-bottom: 18px;
+}
+
+#message p:last-child {
+  margin-bottom: 0;
+}
+
+@media(max-width: 480px) {
+  .envelope {
+    width: 220px;
+    height: 150px;
+  }
+
+  #message {
+    padding: 27px 21px;
+    font-size: 16px;
+    line-height: 1.75;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<section id="intro">
+  <div class="envelope" id="envelope">
+    <div class="envelope-back"></div>
+    <div class="envelope-paper"></div>
+    <div class="envelope-front"></div>
+    <div class="envelope-flap"></div>
+    <div class="seal">♥</div>
+  </div>
+
+  <button class="open-button" id="openButton">Abra</button>
+</section>
+
+<div id="garden"></div>
+
+<div id="message">
+  <p>Espero que tenha gostado do nosso encontro.</p>
+
+  <p>Queria fazer desse dia algo um pouquinho diferente, algo que pudesse ficar guardado de alguma forma, mesmo depois que ele terminasse.</p>
+
+  <p>E pensei que algumas flores seriam uma maneira bonita de fazer isso.</p>
+</div>
+
+<script>
+const garden = document.getElementById("garden");
+const envelope = document.getElementById("envelope");
+const intro = document.getElementById("intro");
+const message = document.getElementById("message");
+
+const palettes = {
+  rose: ["#9d263e", "#c43d55", "#e36b79", "#f0a0a5"],
+  pink: ["#d65d85", "#e98aa3", "#f3b7c4", "#f8d5d9"],
+  white: ["#fffaf0", "#f5eadb", "#e9d9c8", "#fffdf8"],
+  cream: ["#e8c89a", "#f0d9b4", "#f7e8ce", "#fff4df"],
+  yellow: ["#e8b83f", "#f2ce69", "#f8df91", "#fff0b9"],
+  lilac: ["#9271b5", "#ad91c9", "#c8b4dc", "#e0d4ec"],
+  coral: ["#db765f", "#eb947d", "#f3b29d", "#f8c9b7"],
+  peach: ["#d98c72", "#e8aa91", "#f2c4ad", "#f8d9c8"]
+};
+
+function roseSVG(colors) {
+  return `
+  <svg viewBox="0 0 100 100" width="100%" height="100%">
+    <defs>
+      <radialGradient id="roseGrad${Math.random().toString(36).slice(2)}">
+        <stop offset="0%" stop-color="${colors[0]}"/>
+        <stop offset="70%" stop-color="${colors[1]}"/>
+        <stop offset="100%" stop-color="${colors[2]}"/>
+      </radialGradient>
+    </defs>
+    <g transform="translate(50 50)">
+      ${Array.from({length:9}, (_,i) => `
+        <path d="M0 0 C-18 -8 -27 -25 -12 -38 C3 -48 19 -34 17 -20 C15 -9 8 -4 0 0Z"
+          transform="rotate(${i*40})"
+          fill="${colors[i%3]}" stroke="${colors[3]}" stroke-width=".7"/>
+      `).join("")}
+      <path d="M0 0 C-17 -13 -7 -30 7 -25 C20 -18 8 -4 0 0Z"
+        fill="${colors[1]}"/>
+      <path d="M0 0 C-10 -8 0 -18 9 -12 C13 -5 5 1 0 0Z"
+        fill="${colors[0]}"/>
+      <path d="M0 0 Q-4 -12 5 -13 Q13 -8 0 0Z" fill="${colors[3]}"/>
+    </g>
+  </svg>`;
+}
+
+function peonySVG(colors) {
+  return `
+  <svg viewBox="0 0 100 100" width="100%" height="100%">
+    <g transform="translate(50 50)">
+      ${Array.from({length:15}, (_,i) => `
+        <path d="M0 0 C-13 -13 -17 -35 -4 -42 C9 -47 21 -27 12 -12 Q7 -3 0 0Z"
+          transform="rotate(${i*24})"
+          fill="${colors[i%4]}" stroke="#ffffff55" stroke-width=".8"/>
+      `).join("")}
+      ${Array.from({length:9}, (_,i) => `
+        <ellipse cx="0" cy="-17" rx="8" ry="19"
+          transform="rotate(${i*40})"
+          fill="${colors[(i+1)%4]}" opacity=".95"/>
+      `).join("")}
+      <circle r="8" fill="${colors[0]}"/>
+      <circle r="4" fill="${colors[3]}"/>
+    </g>
+  </svg>`;
+}
+
+function tulipSVG(colors) {
+  return `
+  <svg viewBox="0 0 100 120" width="100%" height="100%">
+    <path d="M50 56 Q49 85 51 116" fill="none" stroke="#64845d" stroke-width="4"/>
+    <path d="M50 90 Q20 65 16 91 Q31 112 50 102Z" fill="#78956b"/>
+    <path d="M51 103 Q72 70 86 88 Q80 108 51 112Z" fill="#8ba27a"/>
+    <path d="M50 65
+      C29 57 18 38 26 15
+      C34 27 40 25 50 4
+      C60 25 68 27 75 15
+      C83 39 70 58 50 65Z"
+      fill="${colors[1]}" stroke="${colors[0]}" stroke-width="1.5"/>
+    <path d="M50 60 Q40 39 50 9 Q57 40 50 60Z" fill="${colors[2]}" opacity=".8"/>
+    <path d="M28 23 Q34 51 48 61" stroke="${colors[3]}" stroke-width="2" fill="none" opacity=".8"/>
+    <path d="M73 23 Q68 51 52 61" stroke="${colors[3]}" stroke-width="2" fill="none" opacity=".8"/>
+  </svg>`;
+}
+
+function daisySVG(colors) {
+  return `
+  <svg viewBox="0 0 100 100" width="100%" height="100%">
+    <g transform="translate(50 50)">
+      ${Array.from({length:18}, (_,i) => `
+        <ellipse cx="0" cy="-25" rx="6" ry="22"
+          transform="rotate(${i*20})"
+          fill="${colors[i%4]}" stroke="#e8dfd2" stroke-width=".5"/>
+      `).join("")}
+      <circle r="13" fill="#d99c36"/>
+      <circle r="9" fill="#f2c65b"/>
+      ${Array.from({length:13}, (_,i) => `
+        <circle cx="${Math.cos(i*.48)*6}" cy="${Math.sin(i*.48)*6}" r="1.2" fill="#98682e"/>
+      `).join("")}
+    </g>
+  </svg>`;
+}
+
+function hydrangeaSVG(colors) {
+  return `
+  <svg viewBox="0 0 110 110" width="100%" height="100%">
+    <g>
+      ${Array.from({length:19}, (_,i) => {
+        const angle = i*2.4;
+        const x = 53 + Math.cos(angle)*27;
+        const y = 51 + Math.sin(angle)*27;
+        return `
+          <g transform="translate(${x} ${y}) rotate(${i*31})">
+            <path d="M0 -9 C-11 -17 -12 -4 -5 0 C-13 9 0 13 4 5 C13 12 18 -1 8 -5 C13 -16 2 -18 0 -9Z"
+              fill="${colors[i%4]}" stroke="#ffffff88" stroke-width=".8"/>
+            <circle cx="0" cy="0" r="2.2" fill="#e9d28c"/>
+          </g>`;
+      }).join("")}
+    </g>
+    <path d="M54 77 Q44 94 27 101" stroke="#718b62" stroke-width="3" fill="none"/>
+    <path d="M54 77 Q75 88 88 102" stroke="#718b62" stroke-width="3" fill="none"/>
+  </svg>`;
+}
+
+const flowerTypes = [
+  { name: "rose", weight: 27 },
+  { name: "peony", weight: 24 },
+  { name: "tulip", weight: 19 },
+  { name: "daisy", weight: 18 },
+  { name: "hydrangea", weight: 12 }
+];
+
+function chooseType() {
+  const total = flowerTypes.reduce((sum, item) => sum + item.weight, 0);
+  let random = Math.random() * total;
+
+  for (const item of flowerTypes) {
+    random -= item.weight;
+    if (random <= 0) return item.name;
+  }
+
+  return "rose";
+}
+
+function makeFlower(type, colors) {
+  if (type === "rose") return roseSVG(colors);
+  if (type === "peony") return peonySVG(colors);
+  if (type === "tulip") return tulipSVG(colors);
+  if (type === "daisy") return daisySVG(colors);
+  return hydrangeaSVG(colors);
+}
+
+function createFlowers() {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+
+  const columns = 16;
+  const rows = 15;
+
+  let positions = [];
+
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < columns; col++) {
+      positions.push({
+        x: (col + .5 + (Math.random()-.5)*.65) * width / columns,
+        y: (row + .5 + (Math.random()-.5)*.65) * height / rows
+      });
+    }
+  }
+
+  positions.sort(() => Math.random() - .5);
+
+  positions.forEach((position, index) => {
+    const type = chooseType();
+    const paletteNames = Object.keys(palettes);
+    const paletteName = paletteNames[Math.floor(Math.random()*paletteNames.length)];
+    const colors = palettes[paletteName];
+
+    const flower = document.createElement("div");
+    flower.className = "flower";
+
+    const size = 45 + Math.random()*95;
+    const delay = Math.random()*3.65;
+    const duration = 1.15 + Math.random()*.7;
+
+    flower.style.left = position.x + "px";
+    flower.style.top = position.y + "px";
+    flower.style.width = size + "px";
+    flower.style.height = size * (type === "tulip" ? 1.15 : 1) + "px";
+    flower.style.zIndex = Math.floor(size/15);
+    flower.style.setProperty("--rotation", Math.random()*360 + "deg");
+    flower.style.setProperty("--delay", delay + "s");
+    flower.style.setProperty("--duration", duration + "s");
+
+    flower.innerHTML = makeFlower(type, colors);
+    garden.appendChild(flower);
+  });
+}
+
+function createFallingPetals() {
+  const colors = [
+    "#e9a2b0", "#f2c5c9", "#d77a85",
+    "#e8b8a1", "#f0d6c2", "#c79bcf",
+    "#fff0e6"
+  ];
+
+  for (let i = 0; i < 48; i++) {
+    const petal = document.createElement("div");
+    petal.className = "petal-fall";
+
+    petal.style.left = Math.random()*100 + "%";
+    petal.style.setProperty("--petal-color",
+      colors[Math.floor(Math.random()*colors.length)]);
+    petal.style.setProperty("--fall-time", (3.5+Math.random()*3.5) + "s");
+    petal.style.setProperty("--fall-delay", (Math.random()*3.7) + "s");
+    petal.style.setProperty("--drift", (Math.random()*180-90) + "px");
+
+    garden.appendChild(petal);
+  }
+}
+
+document.getElementById("openButton").addEventListener("click", () => {
+  envelope.classList.add("open");
+
+  setTimeout(() => {
+    intro.classList.add("hidden");
+    garden.classList.add("active");
+
+    createFlowers();
+    createFallingPetals();
+
+    setTimeout(() => {
+      message.classList.add("visible");
+    }, 4200);
+
+  }, 850);
+});
+</script>
+
+</body>
+</html>
